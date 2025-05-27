@@ -1,9 +1,6 @@
 package conexion;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
-
-import modelo.Usuario;
 
 public class Paquete implements Serializable {
     /**

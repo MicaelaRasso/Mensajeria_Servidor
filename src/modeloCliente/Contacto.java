@@ -16,9 +16,10 @@ public class Contacto extends Usuario{
         this.conversacion = conversacion;
     }
 
+	@Override
+	public String toString() {
+		return super.toString() + ", isConnected:" + isConnected();
+	}
 
-    @Override
-    public String toString() {
-        return super().toString();
-    }
+
 }

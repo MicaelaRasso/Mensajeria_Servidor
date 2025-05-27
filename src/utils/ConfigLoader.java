@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.util.Properties;
 
 public class ConfigLoader {
-    public static String pHost;
-    public static int pPort;
+    public static String mHost;
+    public static int mPort;
     public static String sHost;
     public static int sPort;
     
@@ -15,10 +15,10 @@ public class ConfigLoader {
         try {
             Properties props = new Properties();
             props.load(new FileInputStream("config.properties"));
-            pHost = props.getProperty("monitor.host");
-            pPort = Integer.parseInt(props.getProperty("monitor.port"));
-            sHost = props.getProperty("server.host");
-            sPort = Integer.parseInt(props.getProperty("server.port"));
+            mHost = props.getProperty("monitor.host");
+            mPort = Integer.parseInt(props.getProperty("monitor.port"));
+            sHost = props.getProperty("servidor.host");
+            sPort = Integer.parseInt(props.getProperty("servidor.port"));
             
 	        } catch (IOException e) {
 	            e.printStackTrace();
