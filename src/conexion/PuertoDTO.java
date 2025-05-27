@@ -1,6 +1,10 @@
 package conexion;
 
 public class PuertoDTO extends Contenido {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private int puerto;
 	private String address;
 	

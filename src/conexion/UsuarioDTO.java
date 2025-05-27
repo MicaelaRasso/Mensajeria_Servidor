@@ -1,31 +1,33 @@
 package conexion;
 
-import modeloCliente.Usuario;
-
 public class UsuarioDTO extends ContenidoC {
-	private String address;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private String nombre;
+	private PuertoDTO puerto;
 	private String respuesta;
 
-	public UsuarioDTO(Usuario emisor, String address) {
+	public UsuarioDTO(UsuarioDTO emisor, String nombreC, PuertoDTO puerto) {
 		super(emisor);
-		this.address = address;
+		this.nombre = nombreC;
+		this.puerto = puerto;
 		respuesta = "";
 	}
 	
-	public UsuarioDTO(Usuario usuario) {
-		super(usuario);
-		this.address = "";
+	public UsuarioDTO(UsuarioDTO emisor, String nombre) {
+		super(emisor);
+		this.nombre = nombre;
+		this.puerto = null;
 		respuesta = "";
 	}
-	
-	
 
-	public String getAddress() {
-		return address;
-	}
-
-	public void setAddress(String address) {
-		this.address = address;
+	public UsuarioDTO(UsuarioDTO emisor) {
+		super(emisor);
+		this.nombre = "";
+		this.puerto = null;
+		respuesta = "";
 	}
 
 	public String getRespuesta() {
@@ -36,5 +38,11 @@ public class UsuarioDTO extends ContenidoC {
 		this.respuesta = respuesta;
 	}
 	
+	public String getNombre() {
+		return nombre;
+	}
 	
+	public PuertoDTO getPuerto() {
+		return puerto;
+	}
 }

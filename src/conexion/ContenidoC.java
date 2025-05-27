@@ -1,19 +1,21 @@
 package conexion;
 
-import modeloCliente.Usuario;
-
 public class ContenidoC extends Contenido {
-	private Usuario emisor;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private UsuarioDTO emisor;
 
-	public ContenidoC(Usuario emisor) {
-		this.setEmisor(emisor);
+	public ContenidoC(UsuarioDTO emisor) {
+		this.emisor = emisor;
 	}
 
-	public Usuario getEmisor() {
+	public UsuarioDTO getEmisor() {
 		return emisor;
 	}
 
-	public void setEmisor(Usuario emisor) {
+	public void setEmisor(UsuarioDTO emisor) {
 		this.emisor = emisor;
 	}
 

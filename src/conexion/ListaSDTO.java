@@ -3,6 +3,10 @@ package conexion;
 import java.util.ArrayList;
 
 public class ListaSDTO extends Contenido {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private ArrayList<PuertoDTO> servidores;
 
 	public ListaSDTO() {

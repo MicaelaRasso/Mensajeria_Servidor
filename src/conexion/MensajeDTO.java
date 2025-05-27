@@ -1,14 +1,15 @@
 package conexion;
 
-import modeloCliente.Contacto;
-import modeloCliente.Usuario;
-
 public class MensajeDTO extends ContenidoC {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private String mensaje;
-	private Contacto receptor;
+	private UsuarioDTO receptor;
 	
 
-	public MensajeDTO(Usuario emisor, String mensaje, Contacto receptor) {
+	public MensajeDTO(UsuarioDTO emisor, String mensaje, UsuarioDTO receptor) {
 		super(emisor);
 		this.mensaje = mensaje;
 		this.receptor = receptor;
@@ -22,11 +23,11 @@ public class MensajeDTO extends ContenidoC {
 		this.mensaje = mensaje;
 	}
 
-	public Contacto getReceptor() {
+	public UsuarioDTO getReceptor() {
 		return receptor;
 	}
 
-	public void setReceptor(Contacto receptor) {
+	public void setReceptor(UsuarioDTO receptor) {
 		this.receptor = receptor;
 	}
 
