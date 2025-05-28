@@ -73,7 +73,6 @@ public class Servidor {
         	uDTO1.setRespuesta("no existe"); 
         }
     	Paquete paq = new Paquete("agregarCR", uDTO1);
-        
     	return paq;
     }
 

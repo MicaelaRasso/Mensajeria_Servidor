@@ -49,10 +49,10 @@ public class ClientHandler extends Thread {
                 switch (paquete.getOperacion()) {
                     case "registrarU": {
                         Paquete reg = sys.registrarUsuario((UsuarioDTO) paquete.getContenido(), (socket.getInetAddress()).getHostAddress(), socket.getPort());
-                        Paquete rta = new Paquete("ACK", null);
+/*                        Paquete rta = new Paquete("ACK", null);
                         out.writeObject(rta);
                         out.flush();
-
+*/
                         out.writeObject(reg);
                         out.flush();
 
@@ -61,9 +61,10 @@ public class ClientHandler extends Thread {
                     }
                     case "agregarC": {
                         Paquete resp = sys.manejarConsulta((UsuarioDTO) paquete.getContenido());
-                        Paquete rta = new Paquete("ACK", null);
+  /*                      Paquete rta = new Paquete("ACK", null);
                         out.writeObject(rta);
                         out.flush();
+ */
                         out.writeObject(resp);
                         out.flush();
                         break;
@@ -71,9 +72,10 @@ public class ClientHandler extends Thread {
                     case "enviarM": {
                         Paquete resend = sys.manejarMensaje((MensajeDTO) paquete.getContenido());
                         if (resend != null) {
-                            Paquete rta = new Paquete("ACK", null);
+/*                            Paquete rta = new Paquete("ACK", null);
                             out.writeObject(rta);
                             out.flush();
+*/
                             try {
                                 enviarMensaje(resend);
                             } catch (SinConexionException e) {
@@ -116,8 +118,7 @@ public class ClientHandler extends Thread {
     
 	private void enviarPendientes(Paquete paquete) {
 		Servidor sys = Servidor.getInstance();
-		UsuarioDTO uReconectado = (UsuarioDTO) ((MensajeDTO) paquete.getContenido()).getEmisor();
-		String nombre = uReconectado.getNombre();
+		String nombre = ((UsuarioDTO)paquete.getContenido()).getNombre();
 
 		List<MensajeDTO> mensajesPendientes = sys.entregarPendientes(nombre);
 		

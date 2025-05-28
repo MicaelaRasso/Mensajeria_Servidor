@@ -63,7 +63,7 @@ public class ConexionServidor {
 
         } catch (IOException | ClassNotFoundException e) {
             System.err.println("No puedo conectar al monitor");
-            e.printStackTrace();
+            //e.printStackTrace();
             System.exit(1);
         }
     }
