@@ -50,12 +50,15 @@ public class ConexionServidor {
             // 2) Esperar lista de servidores
             Paquete resp = (Paquete) min.readObject();
             if ("obtenerSR".equals(resp.getOperacion())) {
-                ListaSDTO lista = (ListaSDTO) resp.getContenido(); // ✅ casteás al tipo correcto
+                ListaSDTO lista = (ListaSDTO) resp.getContenido();
                 List<PuertoDTO> otros = lista.getServidores();
                 servidores.addAll(otros);
                 System.out.println("Otros servidores: " + servidores.toString());
-
             }
+            
+            mout.writeObject(new Paquete("ACK",null));
+            mout.flush();
+
 
 
         } catch (IOException | ClassNotFoundException e) {

@@ -1,6 +1,6 @@
 package conexion;
 
-public class UsuarioDTO extends ContenidoC {
+public class UsuarioDTO extends Contenido {
 	/**
 	 * 
 	 */
@@ -9,23 +9,16 @@ public class UsuarioDTO extends ContenidoC {
 	private PuertoDTO puerto;
 	private String respuesta;
 
-	public UsuarioDTO(UsuarioDTO emisor, String nombreC, PuertoDTO puerto) {
-		super(emisor);
+	public UsuarioDTO(String nombreC, PuertoDTO puerto) {
+		super();
 		this.nombre = nombreC;
 		this.puerto = puerto;
 		respuesta = "";
 	}
 	
-	public UsuarioDTO(UsuarioDTO emisor, String nombre) {
-		super(emisor);
+	public UsuarioDTO(String nombre) {
+		super();
 		this.nombre = nombre;
-		this.puerto = null;
-		respuesta = "";
-	}
-
-	public UsuarioDTO(UsuarioDTO emisor) {
-		super(emisor);
-		this.nombre = "";
 		this.puerto = null;
 		respuesta = "";
 	}

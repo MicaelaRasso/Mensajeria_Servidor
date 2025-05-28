@@ -1,9 +1,11 @@
 package conexion;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -22,8 +24,6 @@ public class ClientHandler extends Thread {
     private void enviarMensaje(Paquete paquete) throws SinConexionException{
         //Socket socket;
 		try {
-			//socket = new Socket(this.socket.getInetAddress(), this.socket.getPort());
-        	//ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
 
         	System.out.println("Se envio: "+ paquete.toString());
         	out.writeObject(paquete);
@@ -39,40 +39,40 @@ public class ClientHandler extends Thread {
     public void run() {
         Paquete paquete;
         Servidor sys = Servidor.getInstance();
-
-       /* try (
-            ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
-            ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
-        ) {*/
-            
         try {
-            out.flush();  // tras crear el stream de salida
-            	// Bucle de mensajes desde este cliente
+        	out = new ObjectOutputStream(socket.getOutputStream());
+            out.flush();
+            in = new ObjectInputStream(socket.getInputStream());
+
+        	// Bucle de mensajes desde este cliente
             while ((paquete = (Paquete) in.readObject()) != null) {
                 switch (paquete.getOperacion()) {
-                    case "registro": {
+                    case "registrarU": {
                         Paquete reg = sys.registrarUsuario((UsuarioDTO) paquete.getContenido(), (socket.getInetAddress()).getHostAddress(), socket.getPort());
-                        out.writeObject("ACK");
+                        Paquete rta = new Paquete("ACK", null);
+                        out.writeObject(rta);
                         out.flush();
+
                         out.writeObject(reg);
                         out.flush();
 
                         enviarPendientes(paquete);
                         break;
                     }
-                    case "consulta": {
+                    case "agregarC": {
                         Paquete resp = sys.manejarConsulta((UsuarioDTO) paquete.getContenido());
-                        out.writeObject("ACK");
+                        Paquete rta = new Paquete("ACK", null);
+                        out.writeObject(rta);
                         out.flush();
                         out.writeObject(resp);
                         out.flush();
                         break;
                     }
-                    case "mensaje": {
+                    case "enviarM": {
                         Paquete resend = sys.manejarMensaje((MensajeDTO) paquete.getContenido());
                         if (resend != null) {
-                            MensajeDTO mDTO = (MensajeDTO) resend.getContenido();
-                            out.writeObject("ACK");
+                            Paquete rta = new Paquete("ACK", null);
+                            out.writeObject(rta);
                             out.flush();
                             try {
                                 enviarMensaje(resend);
@@ -84,24 +84,33 @@ public class ClientHandler extends Thread {
                     }
                     case "heartbeat": {
                         sys.actualizarHeartbeat((PuertoDTO) paquete.getContenido());
-                        out.writeObject("ACK");
+                        Paquete rta = new Paquete("ACK", null);
+                        out.writeObject(rta);
                         out.flush();
                         break;
                     }
                     default: {
                         System.err.println("Operación desconocida: " + paquete.getOperacion());
-                        out.writeObject("ACK");
+                        Paquete rta = new Paquete("ACK", null);
+                        out.writeObject(rta);
                         out.flush();
                         break;
                     }
                 }
             }
-       /* } catch (EOFException | SocketException eof) {
-            System.out.println("Cliente desconectó: " + socket.getRemoteSocketAddress());
-        */} catch (Exception ex) {
+        } catch (EOFException | SocketException e) {
+            //System.out.println("Cliente desconectado: " + socket.getRemoteSocketAddress());
+        } catch (Exception ex) {
             ex.printStackTrace();
+        } finally {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
+
 
     
     

@@ -38,7 +38,7 @@ public class Servidor {
         Usuario usuario = usuarios.get(nombre);
         PuertoDTO p = new PuertoDTO(puerto, address);
         
-        UsuarioDTO response = new UsuarioDTO(null, nombre, p);
+        UsuarioDTO response = new UsuarioDTO(nombre, p);
         if(usuario != null && !usuario.isConnected()) { //reconectado
         	usuario.setAddress(address);
             usuario.setPort(puerto);
@@ -63,23 +63,18 @@ public class Servidor {
     }
 
     /** Atiende una consulta de existencia de usuario */
-    public Paquete manejarConsulta(UsuarioDTO uDTO) { //CREO QUE NO ME SIRVE EL USAURIODTO, NECESITO SABER EL EMISOR Y EL CONTACTO QUE SE QUIERA AGREGAR
-    	String buscado;
-    	/*
-    	String buscado = req.getContenido();
-        Request resp = new Request();
-        resp.setOperacion("consultaResp");
-        resp.setEmisor(new Usuario("SERVER", "0.0.0.0"));
-        resp.setReceptor(req.getEmisor());
-        resp.setFechaYHora(LocalDateTime.now());
+    public Paquete manejarConsulta(UsuarioDTO uDTO) { 
+    	String buscado = uDTO.getNombre();
+    	
+    	UsuarioDTO uDTO1 = new UsuarioDTO(buscado);
         if (usuarios.containsKey(buscado)) {
-            resp.setContenido(buscado);
+            uDTO1.setRespuesta("encontrado");
         } else {
-            resp.setContenido("");
+        	uDTO1.setRespuesta("no existe"); 
         }
-        return resp;
-        */
-    	return null;
+    	Paquete paq = new Paquete("agregarCR", uDTO1);
+        
+    	return paq;
     }
 
     /** Almacena un mensaje pendiente */
