@@ -11,6 +11,7 @@ import java.util.List;
 
 import excepciones.SinConexionException;
 import modelo.Servidor;
+import modelo.Usuario;
 
 public class ClientHandler extends Thread {
     private final Socket socket;
@@ -21,14 +22,18 @@ public class ClientHandler extends Thread {
         this.socket = socket;
     }
     
-    private void enviarMensaje(Paquete paquete) throws SinConexionException{
+    private void enviarMensaje(Paquete paquete, Usuario receptor) throws SinConexionException{
         //Socket socket;
 		try {
-
+			System.out.println(receptor.toString());
+			ObjectOutputStream outR = receptor.getOut();
+            outR.flush();
+			
         	System.out.println("Se envio: "+ paquete.toString());
-        	out.writeObject(paquete);
-        	out.flush();
+        	outR.writeObject(paquete);
+        	outR.flush();
 		} catch (IOException e) {
+			receptor.setConnected(false);
 			throw new SinConexionException("Se perdio la conexión con el usuario: " + ((MensajeDTO)paquete.getContenido()).getReceptor());
 		}
     	//System.out.println("Conectado al Proxy en " + PROXY_HOST + ":" + PROXY_PORT);
@@ -48,23 +53,15 @@ public class ClientHandler extends Thread {
             while ((paquete = (Paquete) in.readObject()) != null) {
                 switch (paquete.getOperacion()) {
                     case "registrarU": {
-                        Paquete reg = sys.registrarUsuario((UsuarioDTO) paquete.getContenido(), (socket.getInetAddress()).getHostAddress(), socket.getPort());
-/*                        Paquete rta = new Paquete("ACK", null);
-                        out.writeObject(rta);
-                        out.flush();
-*/
+                    	Paquete reg = sys.registrarUsuario((UsuarioDTO) paquete.getContenido(), out);
                         out.writeObject(reg);
                         out.flush();
 
-                        enviarPendientes(paquete);
+                        enviarPendientes(((UsuarioDTO) paquete.getContenido()).getNombre());
                         break;
                     }
                     case "agregarC": {
                         Paquete resp = sys.manejarConsulta((UsuarioDTO) paquete.getContenido());
-  /*                      Paquete rta = new Paquete("ACK", null);
-                        out.writeObject(rta);
-                        out.flush();
- */
                         out.writeObject(resp);
                         out.flush();
                         break;
@@ -72,12 +69,11 @@ public class ClientHandler extends Thread {
                     case "enviarM": {
                         Paquete resend = sys.manejarMensaje((MensajeDTO) paquete.getContenido());
                         if (resend != null) {
-/*                            Paquete rta = new Paquete("ACK", null);
-                            out.writeObject(rta);
-                            out.flush();
-*/
+                        	String nombreR = ((MensajeDTO)resend.getContenido()).getReceptor().getNombre();
+                        	Usuario receptor = sys.getUsuarios().get(nombreR);
+                        	
                             try {
-                                enviarMensaje(resend);
+                                enviarMensaje(resend, receptor);
                             } catch (SinConexionException e) {
                                 sys.almacenarMensaje((MensajeDTO) paquete.getContenido());
                             }
@@ -91,6 +87,10 @@ public class ClientHandler extends Thread {
                         out.flush();
                         break;
                     }
+                    case "desconectarU":{
+                    	sys.desconectarUsuario((UsuarioDTO)paquete.getContenido());
+                    	break;
+                    }
                     default: {
                         System.err.println("Operación desconocida: " + paquete.getOperacion());
                         Paquete rta = new Paquete("ACK", null);
@@ -101,6 +101,7 @@ public class ClientHandler extends Thread {
                 }
             }
         } catch (EOFException | SocketException e) {
+        	
             //System.out.println("Cliente desconectado: " + socket.getRemoteSocketAddress());
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -116,11 +117,13 @@ public class ClientHandler extends Thread {
 
     
     
-	private void enviarPendientes(Paquete paquete) {
+	private void enviarPendientes(String nUsuarioReconectado) {
 		Servidor sys = Servidor.getInstance();
-		String nombre = ((UsuarioDTO)paquete.getContenido()).getNombre();
+		Usuario receptor = sys.getUsuarios().get(nUsuarioReconectado);
+		
+		List<MensajeDTO> mensajesPendientes = sys.entregarPendientes(nUsuarioReconectado);
 
-		List<MensajeDTO> mensajesPendientes = sys.entregarPendientes(nombre);
+		System.out.println("Cantidad de mensajes pendientes: " + mensajesPendientes.size());
 		
 		Iterator<MensajeDTO> it = mensajesPendientes.iterator();
 
@@ -128,7 +131,7 @@ public class ClientHandler extends Thread {
 		    MensajeDTO mp = it.next();
 	    	Paquete paq = new Paquete("recibirM", mp);
 	        try {
-				enviarMensaje(paq);
+				enviarMensaje(paq, receptor);
 			} catch (SinConexionException e) {
 				break;
 			}

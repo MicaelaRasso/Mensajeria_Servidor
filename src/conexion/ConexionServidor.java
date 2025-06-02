@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
+import modelo.Servidor;
 import utils.ConfigLoader;
 
 public class ConexionServidor {
@@ -17,7 +18,7 @@ public class ConexionServidor {
     private static final String IP = ConfigLoader.sHost;
     
     private ServerSocket serverSocket;
-    private ArrayList<PuertoDTO> servidores = new ArrayList<>();
+    //private ArrayList<PuertoDTO> servidores = new ArrayList<>();
 
     // Streams y socket al monitor, ahora atributos
     private Socket monitorSocket;
@@ -43,26 +44,22 @@ public class ConexionServidor {
             mout.flush(); // importante antes de crear el input
             min = new ObjectInputStream(monitorSocket.getInputStream());
 
-            // 1) Enviar registro
             mout.writeObject(new Paquete("registrarS", new PuertoDTO(PUERTO, IP)));
             mout.flush();
 
-            // 2) Esperar lista de servidores
             Paquete resp = (Paquete) min.readObject();
             if ("obtenerSR".equals(resp.getOperacion())) {
                 ListaSDTO lista = (ListaSDTO) resp.getContenido();
                 List<PuertoDTO> otros = lista.getServidores();
+                ArrayList<PuertoDTO> servidores = Servidor.getInstance().getServidores();
                 servidores.addAll(otros);
                 System.out.println("Otros servidores: " + servidores.toString());
             }
             
-            mout.writeObject(new Paquete("ACK",null));
-            mout.flush();
-
-
-
+            //mout.writeObject(new Paquete("ACK",null));
+            //mout.flush();
         } catch (IOException | ClassNotFoundException e) {
-            System.err.println("No puedo conectar al monitor");
+            System.err.println("No se pudo conectar al monitor");
             //e.printStackTrace();
             System.exit(1);
         }

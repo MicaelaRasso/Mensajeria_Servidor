@@ -1,31 +1,16 @@
 package modelo;
 
+import java.io.ObjectOutputStream;
+
 public class Usuario {
 	private String nombre;
-	private String address;
-	private int port;
 	private boolean connected;
-
-	public Usuario(String nombre, String address) {
-		super();
-		this.nombre = nombre;
-		this.address = address;
-		this.connected = true;
-	}
+	private ObjectOutputStream out;
 
 	public Usuario(String nombre) {
 		super();
 		this.nombre = nombre;
-		this.address = "";
 		this.connected = true;
-	}
-
-	public int getPort() {
-		return port;
-	}
-
-	public void setPort(int port) {
-		this.port = port;
 	}
 
 	public boolean isConnected() {
@@ -44,12 +29,17 @@ public class Usuario {
 		this.nombre = nombre;
 	}
 
-	public String getAddress() {
-		return address;
+	public ObjectOutputStream getOut() {
+		return out;
 	}
 
-	public void setAddress(String address) {
-		this.address = address;
+	public void setOut(ObjectOutputStream out) {
+		this.out = out;
 	}
 
+	@Override
+	public String toString() {
+		return "Usuario:" + nombre + ", connected:" + connected + ", out: " + out.toString();
+	}
+	
 }

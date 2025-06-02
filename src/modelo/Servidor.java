@@ -1,5 +1,6 @@
 package modelo;
 
+import java.io.ObjectOutputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,8 @@ public class Servidor {
 
     private final Map<String,Usuario> usuarios  = new ConcurrentHashMap<>();
     private final Map<String,List<MensajeDTO>> pendings = new ConcurrentHashMap<>();
+
+    private ArrayList<PuertoDTO> servidores = new ArrayList<>();
     
 
     private Servidor() {}
@@ -30,26 +33,23 @@ public class Servidor {
         return INSTANCE;
     }
 
-    /** Registro de un nuevo usuario 
-     * @param i 
-     * @param address */
-    public synchronized Paquete registrarUsuario(UsuarioDTO uDTO, String address, int puerto) {
+
+    public synchronized Paquete registrarUsuario(UsuarioDTO uDTO, ObjectOutputStream out) {
     	String nombre = uDTO.getNombre();
         Usuario usuario = usuarios.get(nombre);
-        PuertoDTO p = new PuertoDTO(puerto, address);
-        
-        UsuarioDTO response = new UsuarioDTO(nombre, p);
+        UsuarioDTO response = new UsuarioDTO(nombre);
+
         if(usuario != null && !usuario.isConnected()) { //reconectado
-        	usuario.setAddress(address);
-            usuario.setPort(puerto);
         	usuario.setConnected(true);
-        	System.out.println("[ServerSystem] Usuario reconectado: " + nombre + "@" + address);
+        	usuario.setOut(out);
+        	System.out.println("[ServerSystem] Usuario reconectado: " + usuario.toString());
         	response.setRespuesta("registrado");
         }else {
         	if(usuario == null) { //nuevo usuario
         		Usuario u = new Usuario(nombre);
         		usuarios.put(nombre, u);
-        		System.out.println("[ServerSystem] Usuario registrado: " + nombre + "@" + address);
+            	u.setOut(out);
+        		System.out.println("[ServerSystem] Usuario registrado: " + u.toString());
         		response.setRespuesta("registrado");
         	}else {
         		response.setRespuesta("en uso"); 
@@ -82,11 +82,12 @@ public class Servidor {
         Paquete resend = null;
 
         Usuario receptor = usuarios.get(nombreReceptor);
-        System.out.println(receptor.isConnected());
+        //System.out.println(receptor.isConnected());
         if(receptor != null) {
         	if(receptor.isConnected()) {
         		resend = new Paquete("recibirM", mDTO);
         	}else{        		
+        		almacenarMensaje(mDTO);
         		System.out.println("[ServerSystem] Mensaje para " + nombreReceptor + " almacenado.");
         	}
         }
@@ -97,19 +98,10 @@ public class Servidor {
 	public void almacenarMensaje(MensajeDTO mDTO) {
         
 		UsuarioDTO receptorDTO = (UsuarioDTO) mDTO.getReceptor();
-        //MensajeDTO resend = null;
-  		//resend = new MensajeDTO(mDTO);
 		Usuario receptor = usuarios.get(receptorDTO.getNombre());
 		if(!receptor.isConnected()) {
-/*			System.out.println(receptor.getNombre() + " debe almacenar mensajes");
-	        System.out.println();
-	        System.out.println(pendings.toString());
-	        System.out.println();
-*/			pendings.get(receptor.getNombre()).add(mDTO);
-/*			System.out.println();
-	        System.out.println(pendings.toString());
-	        System.out.println();
-*/		}
+			pendings.get(receptor.getNombre()).add(mDTO);
+		}
 			
 	}
 
@@ -125,7 +117,22 @@ public class Servidor {
         System.out.println("[ServerSystem] Heartbeat recibido para " + pDTO.getPuerto() + " a las " + LocalDateTime.now());
     }
 
+	public void desconectarUsuario(UsuarioDTO contenido) {
+		usuarios.get(contenido.getNombre()).setConnected(false);
+	}
+
 	public Map<String, Usuario> getUsuarios() {
 		return usuarios;
 	}
+
+	public void setServidores(ArrayList<PuertoDTO> servidores) {
+		this.servidores = servidores;
+	}
+
+	public ArrayList<PuertoDTO> getServidores() {
+		return servidores;
+	}
+	
+	
+	
 }
