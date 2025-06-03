@@ -26,7 +26,4 @@ public abstract class Contenido implements Serializable{
 	public String toString() {
 		return "fyh:" + fechaYHora;
 	}
-	
-	
-
 }

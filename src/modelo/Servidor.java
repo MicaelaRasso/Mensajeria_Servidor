@@ -3,10 +3,14 @@ package modelo;
 import java.io.ObjectOutputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import conexion.Contenido;
+import conexion.ListaContenido;
+import conexion.ListaSDTO;
 import conexion.MensajeDTO;
 import conexion.Paquete;
 import conexion.PuertoDTO;
@@ -42,23 +46,21 @@ public class Servidor {
         if(usuario != null && !usuario.isConnected()) { //reconectado
         	usuario.setConnected(true);
         	usuario.setOut(out);
-        	System.out.println("[ServerSystem] Usuario reconectado: " + usuario.toString());
+//        	System.out.println("[ServerSystem] Usuario reconectado: " + usuario.toString());
         	response.setRespuesta("registrado");
         }else {
         	if(usuario == null) { //nuevo usuario
         		Usuario u = new Usuario(nombre);
         		usuarios.put(nombre, u);
             	u.setOut(out);
-        		System.out.println("[ServerSystem] Usuario registrado: " + u.toString());
+//        		System.out.println("[ServerSystem] Usuario registrado: " + u.toString());
         		response.setRespuesta("registrado");
         	}else {
         		response.setRespuesta("en uso"); 
-        		System.out.println("[ServerSystem] Usuario en uso: " + nombre);
+//        		System.out.println("[ServerSystem] Usuario en uso: " + nombre);
         	}
         }
         pendings.putIfAbsent(nombre, new ArrayList<>());
-        //System.out.println(usuarios.toString());
-        //System.out.println(pendings.toString());
         return new Paquete("registrarUR", response);
     }
 
@@ -82,13 +84,12 @@ public class Servidor {
         Paquete resend = null;
 
         Usuario receptor = usuarios.get(nombreReceptor);
-        //System.out.println(receptor.isConnected());
         if(receptor != null) {
         	if(receptor.isConnected()) {
         		resend = new Paquete("recibirM", mDTO);
         	}else{        		
         		almacenarMensaje(mDTO);
-        		System.out.println("[ServerSystem] Mensaje para " + nombreReceptor + " almacenado.");
+//        		System.out.println("[ServerSystem] Mensaje para " + nombreReceptor + " almacenado.");
         	}
         }
         return resend;
@@ -116,11 +117,54 @@ public class Servidor {
     public void actualizarHeartbeat(PuertoDTO pDTO) {
         System.out.println("[ServerSystem] Heartbeat recibido para " + pDTO.getPuerto() + " a las " + LocalDateTime.now());
     }
-
+    
 	public void desconectarUsuario(UsuarioDTO contenido) {
 		usuarios.get(contenido.getNombre()).setConnected(false);
 	}
 
+	
+	public void actualizarUsuarios(ListaContenido contenido) {
+		List<Usuario> uNuevos = convertirLista(contenido);
+		Iterator<Usuario> it = uNuevos.iterator();
+		while(it.hasNext()) {
+			Usuario u = it.next();
+			usuarios.putIfAbsent(u.getNombre(), u);				
+		}	
+		if(usuarios != null)
+			System.out.println("Usuarios registrados: "+ usuarios.toString());
+		else
+			System.out.println("No hay usuarios registrados");
+	}
+	
+	public List<Usuario> convertirLista(ListaContenido listaContenido) {
+	    List<Usuario> usuarios = new ArrayList<>();
+
+	    for (Contenido c : listaContenido.getContenido()) {
+	            Usuario usuario = new Usuario(((UsuarioDTO)c).getNombre());
+	            usuarios.add(usuario);
+	    }
+	    return usuarios;
+	}
+
+	public void actualizarMensajesPendientes(ListaContenido listaContenido) {		
+		pendings.clear();
+		for (Contenido c : listaContenido.getContenido()) {
+	        if (c instanceof MensajeDTO mensaje) {
+	            String nombreUsuario = mensaje.getReceptor().getNombre();
+	            pendings.computeIfAbsent(nombreUsuario, k -> new ArrayList<>()).add(mensaje);
+	        }
+	    }
+		if(pendings != null)
+			System.out.println("Mensajes almacenados: "+ pendings.toString());
+		else
+			System.out.println("No hay mensajes pendientes");
+	}	
+
+	public void actualizarListaDeServidores(ListaSDTO listaContenido) {
+		this.setServidores(new ArrayList<PuertoDTO>(listaContenido.getServidores()));
+		System.out.println("Servidores registrados: " + servidores.toString());
+	}
+	
 	public Map<String, Usuario> getUsuarios() {
 		return usuarios;
 	}
@@ -132,7 +176,32 @@ public class Servidor {
 	public ArrayList<PuertoDTO> getServidores() {
 		return servidores;
 	}
-	
-	
-	
+
+	public ListaContenido getUsuariosDTO() {
+		UsuarioDTO uDTO;
+		ArrayList<Contenido> listaUDTO = new ArrayList<Contenido>();
+		
+		Iterator<Usuario> it = usuarios.values().iterator();
+		while (it.hasNext()) {
+			Usuario u = it.next();
+			uDTO = new UsuarioDTO(u.getNombre());
+			listaUDTO.add(uDTO);
+		}
+		
+		ListaContenido lista = new ListaContenido();
+		lista.setContenido(listaUDTO);
+		return lista;
+	}
+
+	public ListaContenido getMPDTO() {
+	    ListaContenido lista = new ListaContenido();
+	    ArrayList<Contenido> todosLosMensajes = new ArrayList<>();
+
+	    for (List<MensajeDTO> mensajes : pendings.values()) {
+	        todosLosMensajes.addAll(mensajes);
+	    }
+
+	    lista.setContenido(todosLosMensajes);
+	    return lista;
+	}
 }

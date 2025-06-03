@@ -39,7 +39,10 @@ public class Usuario {
 
 	@Override
 	public String toString() {
-		return "Usuario:" + nombre + ", connected:" + connected + ", out: " + out.toString();
+		if (out != null)
+			return "Usuario:" + nombre + ", connected:" + connected + ", out: " + out.toString();
+		else
+			return "Usuario:" + nombre + ", connected:" + connected;
 	}
 	
 }

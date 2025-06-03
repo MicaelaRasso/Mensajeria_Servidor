@@ -14,7 +14,7 @@ public class ListaContenido extends Contenido {
 		this.contenido = new ArrayList<Contenido>();
 	}
 
-	public ArrayList<Contenido> getContenidoC() {
+	public ArrayList<Contenido> getContenido() {
 		return contenido;
 	}
 	

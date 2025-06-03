@@ -17,27 +17,24 @@ public class ClientHandler extends Thread {
     private final Socket socket;
     private ObjectInputStream in;
 	private ObjectOutputStream out;
+	private ConexionServidor conexionServidor;
 
-    ClientHandler(Socket socket) {
+    ClientHandler(Socket socket, ConexionServidor conexionServidor) {
         this.socket = socket;
+        this.conexionServidor = conexionServidor;
     }
     
     private void enviarMensaje(Paquete paquete, Usuario receptor) throws SinConexionException{
         //Socket socket;
 		try {
-			System.out.println(receptor.toString());
 			ObjectOutputStream outR = receptor.getOut();
             outR.flush();
-			
-        	System.out.println("Se envio: "+ paquete.toString());
         	outR.writeObject(paquete);
         	outR.flush();
 		} catch (IOException e) {
 			receptor.setConnected(false);
 			throw new SinConexionException("Se perdio la conexión con el usuario: " + ((MensajeDTO)paquete.getContenido()).getReceptor());
 		}
-    	//System.out.println("Conectado al Proxy en " + PROXY_HOST + ":" + PROXY_PORT);
-    	//System.out.println("mensaje enviado");        
     }
 
     @Override
@@ -51,6 +48,7 @@ public class ClientHandler extends Thread {
 
         	// Bucle de mensajes desde este cliente
             while ((paquete = (Paquete) in.readObject()) != null) {
+            	System.out.println("[DEBUG] Paquete recibido con operación: " + paquete.getOperacion());
                 switch (paquete.getOperacion()) {
                     case "registrarU": {
                     	Paquete reg = sys.registrarUsuario((UsuarioDTO) paquete.getContenido(), out);
@@ -58,6 +56,7 @@ public class ClientHandler extends Thread {
                         out.flush();
 
                         enviarPendientes(((UsuarioDTO) paquete.getContenido()).getNombre());
+                        actualizarServidores();
                         break;
                     }
                     case "agregarC": {
@@ -76,6 +75,7 @@ public class ClientHandler extends Thread {
                                 enviarMensaje(resend, receptor);
                             } catch (SinConexionException e) {
                                 sys.almacenarMensaje((MensajeDTO) paquete.getContenido());
+                                actualizarServidores();
                             }
                         }
                         break;
@@ -91,6 +91,22 @@ public class ClientHandler extends Thread {
                     	sys.desconectarUsuario((UsuarioDTO)paquete.getContenido());
                     	break;
                     }
+                    case "actualizarU":{
+                    	sys.actualizarUsuarios((ListaContenido)paquete.getContenido());
+                    	break;
+                    }
+                    case "actualizarMP":{
+                    	sys.actualizarMensajesPendientes((ListaContenido)paquete.getContenido());
+                    	break;
+                    }
+                    case "actualizarS":{
+                    	sys.actualizarListaDeServidores((ListaSDTO) paquete.getContenido());
+                    	break;
+                    }
+                    case "ping":{
+                    	out.writeObject(new Paquete("echo", null));
+                    	break;
+                    }
                     default: {
                         System.err.println("Operación desconocida: " + paquete.getOperacion());
                         Paquete rta = new Paquete("ACK", null);
@@ -101,7 +117,6 @@ public class ClientHandler extends Thread {
                 }
             }
         } catch (EOFException | SocketException e) {
-        	
             //System.out.println("Cliente desconectado: " + socket.getRemoteSocketAddress());
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -114,16 +129,27 @@ public class ClientHandler extends Thread {
         }
     }
 
+    
+	private void actualizarServidores() {
+		Servidor sys = Servidor.getInstance();
+		//actualizo usuarios
+		ListaContenido listaUsuarios = sys.getUsuariosDTO();
+        Paquete paqueteUsuarios = new Paquete("actualizarU", listaUsuarios);
+        conexionServidor.actualizarServidores(paqueteUsuarios);
+        //actualizo mensajesPendientes
+        ListaContenido listaMP = sys.getMPDTO();
+        Paquete paqueteMP = new Paquete("actualizarMP", listaMP);
+        conexionServidor.actualizarServidores(paqueteMP);
 
-    
-    
+	}
+
 	private void enviarPendientes(String nUsuarioReconectado) {
 		Servidor sys = Servidor.getInstance();
 		Usuario receptor = sys.getUsuarios().get(nUsuarioReconectado);
 		
 		List<MensajeDTO> mensajesPendientes = sys.entregarPendientes(nUsuarioReconectado);
 
-		System.out.println("Cantidad de mensajes pendientes: " + mensajesPendientes.size());
+//		System.out.println("Cantidad de mensajes pendientes: " + mensajesPendientes.size());
 		
 		Iterator<MensajeDTO> it = mensajesPendientes.iterator();
 
