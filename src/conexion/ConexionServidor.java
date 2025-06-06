@@ -62,29 +62,6 @@ public class ConexionServidor {
         }
     }
 
-/*    public void actualizarServidores(Paquete paquete) {
-    	Servidor sys = Servidor.getInstance();
-    	ArrayList<PuertoDTO> servidores = sys.getServidores();
-        for (PuertoDTO servidor : servidores) {
-            
-        	try (Socket socket = new Socket(servidor.getAddress(), servidor.getPuerto());
-                 ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream())) {
-            	out.flush();
-
-            	System.out.println("Enviando paquete a " + servidor.getAddress() + ":" + servidor.getPuerto() + " : " + paquete.getOperacion());
-
-            	out.writeObject(paquete);
-                out.flush();
-                dormir(1000);
-                System.out.println("Paquete enviado a " + servidor.getAddress() + ":" + servidor.getPuerto());
-
-            } catch (Exception e) {
-                System.err.println("Error al conectar con " + servidor.getAddress() + ":" + servidor.getPuerto());
-                e.printStackTrace();
-            }
-        }
-    }*/
-
     public void actualizarServidores(Paquete paquete) {
         Servidor sys = Servidor.getInstance();
         ArrayList<PuertoDTO> servidores = sys.getServidores();
@@ -107,7 +84,6 @@ public class ConexionServidor {
 
             } catch (Exception e) {
                 System.err.println("Error al conectar con " + servidor.getAddress() + ":" + servidor.getPuerto());
-                e.printStackTrace();
             }
         }
     }

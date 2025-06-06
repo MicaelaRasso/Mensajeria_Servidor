@@ -204,4 +204,13 @@ public class Servidor {
 	    lista.setContenido(todosLosMensajes);
 	    return lista;
 	}
+
+	public void actualizarSocketDeUsuario(UsuarioDTO usuario, ObjectOutputStream out) {
+		if(usuarios.containsKey(usuario.getNombre())) {
+			usuarios.get(usuario.getNombre()).setOut(out);
+			System.out.println("Se actualizo el socket de "+usuario.getNombre());
+		}else
+			System.out.println("Fallo la actualizacion del socket de "+usuario.getNombre());
+
+	}
 }

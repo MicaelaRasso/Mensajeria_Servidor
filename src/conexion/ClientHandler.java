@@ -107,6 +107,10 @@ public class ClientHandler extends Thread {
                     	out.writeObject(new Paquete("echo", null));
                     	break;
                     }
+                    case "actualizarSocket":{ //necesario para cuando se cae un servidor, hay que actualizar los sockets de los usuarios
+                    	sys.actualizarSocketDeUsuario((UsuarioDTO)paquete.getContenido(), out);
+                    	break;
+                    }
                     default: {
                         System.err.println("Operación desconocida: " + paquete.getOperacion());
                         Paquete rta = new Paquete("ACK", null);
