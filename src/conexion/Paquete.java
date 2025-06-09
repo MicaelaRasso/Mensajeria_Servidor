@@ -38,6 +38,4 @@ public class Paquete implements Serializable {
 	public String toString() {
 		return "[Paquete] op: " + operacion + " contenido: " + contenido;
 	}
-    
-    
 }
